@@ -30,6 +30,7 @@ d2l = "*"
 scikit-learn = "*"
 pylint = "*"
 tensorflow = "*"
+pretty-plotly = "*"
 
 [dev-packages]
 
