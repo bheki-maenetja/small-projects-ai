@@ -15,12 +15,13 @@ class FeedForward(nn.Module):
         return self.net(x)
 
 class AttentionHead(nn.Module):
-    def __init__(self, head_size=16, n_embd=32, block_size=8):
+    def __init__(self, head_size=16, n_embd=32, block_size=8, dropout=0.1):
         super().__init__()
         self.key = nn.Linear(n_embd, head_size, bias=False)
         self.query = nn.Linear(n_embd, head_size, bias=False)
         self.value = nn.Linear(n_embd, head_size, bias=False)
         self.softmax = nn.Softmax(dim=-1)
+        self.dropout = nn.Dropout(dropout)
         self.register_buffer("tril", torch.tril(torch.ones(block_size, block_size)))
 
     def forward(self, x):
@@ -32,7 +33,7 @@ class AttentionHead(nn.Module):
         wei = q @ k.transpose(-2, -1) / (C**-0.5) # (B x T x C) @ (B x C x T) -> (B x T x T)
         wei = wei.masked_fill(self.tril[:T, :T] == 0, float("-inf")) # (B x T x T)
         wei = wei.softmax(dim=-1) # (B x T x T)
-
+        wei = self.dropout(wei)
         # Peform the weighted aggregation
         v = self.value(x) # (B x T x C)
 
