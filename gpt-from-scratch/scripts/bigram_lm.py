@@ -2,10 +2,6 @@
 import torch
 import torch.nn as nn
 
-# Local Imports
-from .model_helpers import get_optimiser
-from .data_handling import create_batch
-
 # Model Class
 class BigramLM(nn.Module):
     def __init__(self, vocab_size, n_embd=32, block_size=8, device="cpu"):
