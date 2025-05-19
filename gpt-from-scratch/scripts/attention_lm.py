@@ -2,11 +2,18 @@
 import torch
 import torch.nn as nn
 
-# Local Imports
-from .model_helpers import get_optimiser
-from .data_handling import create_batch
+# Model Classes
+class FeedForward(nn.Module):
+    def __init__(self, n_embd=32):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(n_embd, n_embd),
+            nn.ReLU(),
+        )
+    
+    def forward(self, x):
+        return self.net(x)
 
-# Model Class
 class AttentionHead(nn.Module):
     def __init__(self, head_size=16, n_embd=32, block_size=8):
         super().__init__()
@@ -14,7 +21,7 @@ class AttentionHead(nn.Module):
         self.query = nn.Linear(n_embd, head_size, bias=False)
         self.value = nn.Linear(n_embd, head_size, bias=False)
         self.softmax = nn.Softmax(dim=-1)
-        self.register_buffer("tril", torch.tril(torch.ones(1, 1, block_size, block_size)))
+        self.register_buffer("tril", torch.tril(torch.ones(block_size, block_size)))
 
     def forward(self, x):
         B, T, C = x.shape # C = head_size
@@ -32,8 +39,19 @@ class AttentionHead(nn.Module):
         out = wei @ v # (B x T x T) @ (B x T x C) -> (B x T x C)
         return out
 
+class MultiHeadAttention(nn.Module):
+    def __init__(self, n_heads=1, head_size=32, n_embd=32, block_size=8):
+        super().__init__()
+        self.heads = nn.ModuleList([
+            AttentionHead(head_size=head_size, n_embd=n_embd, block_size=block_size) 
+            for _ in range(n_heads)
+        ])
+    
+    def forward(self, x):
+        return torch.cat([h(x) for h in self.heads], dim=-1)
+
 class AttentionLM(nn.Module):
-    def __init__(self, vocab_size, n_embd=32, block_size=8, head_size=32, device="cpu"):
+    def __init__(self, vocab_size, n_heads=1, head_size=32, n_embd=32, block_size=8, device="cpu"):
         super().__init__()
         self.vocab_size = vocab_size
         self.n_embd = n_embd
@@ -45,7 +63,10 @@ class AttentionLM(nn.Module):
         self.pos_embedding = nn.Embedding(block_size, n_embd)
 
         self.lm_head = nn.Linear(n_embd, vocab_size)
-        self.sa_head = AttentionHead(head_size=head_size, n_embd=n_embd, block_size=block_size)
+        if n_heads == 1:
+            self.sa_heads = AttentionHead(head_size, n_embd, block_size)
+        else:
+            self.sa_heads = MultiHeadAttention(n_heads, n_embd//n_heads, n_embd, block_size)
 
         self.loss = nn.CrossEntropyLoss()
         self.softmax = nn.Softmax(dim=-1)
@@ -54,7 +75,7 @@ class AttentionLM(nn.Module):
         B, T = idx.shape # (B x T)
         tok_emb = self.embedding(idx) # (B x T x C)
         pos_emb = self.pos_embedding(torch.arange(T, device=self.device)) # (T x C)
-        logits = self.sa_head(tok_emb + pos_emb) # (B x T x C)
+        logits = self.sa_heads(tok_emb + pos_emb) # (B x T x C)
         logits = self.lm_head(logits) # (B x T x vocab_size)
 
         if targets is not None:
