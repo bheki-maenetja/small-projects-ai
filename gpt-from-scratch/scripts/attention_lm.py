@@ -62,6 +62,7 @@ class AttentionLM(nn.Module):
         self.embedding = nn.Embedding(vocab_size, n_embd)
         self.pos_embedding = nn.Embedding(block_size, n_embd)
 
+        self.ffwd = FeedForward(n_embd)
         self.lm_head = nn.Linear(n_embd, vocab_size)
         if n_heads == 1:
             self.sa_heads = AttentionHead(head_size, n_embd, block_size)
@@ -75,8 +76,10 @@ class AttentionLM(nn.Module):
         B, T = idx.shape # (B x T)
         tok_emb = self.embedding(idx) # (B x T x C)
         pos_emb = self.pos_embedding(torch.arange(T, device=self.device)) # (T x C)
-        logits = self.sa_heads(tok_emb + pos_emb) # (B x T x C)
-        logits = self.lm_head(logits) # (B x T x vocab_size)
+        x = tok_emb + pos_emb # (B x T x C)
+        x = self.sa_heads(x) # (B x T x C)
+        x = self.ffwd(x) # (B x T x C)
+        logits = self.lm_head(x) # (B x T x vocab_size)
 
         if targets is not None:
             # Reshape logits and targets
