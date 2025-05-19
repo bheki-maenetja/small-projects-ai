@@ -7,49 +7,59 @@ from .attention_lm import AttentionHead
 
 # Model Classes
 class TransformerFeedForward(nn.Module):
-    def __init__(self, n_embd=32):
+    def __init__(self, n_embd=32, dropout=0.1):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(n_embd, 4*n_embd),
             nn.ReLU(),
             nn.Linear(4*n_embd, n_embd),
+            nn.Dropout(dropout),
         )
     
     def forward(self, x):
         return self.net(x)
 
 class TransformerMultiHeadAttention(nn.Module):
-    def __init__(self, n_heads=1, head_size=32, n_embd=32, block_size=8):
+    def __init__(self, n_heads=1, head_size=32, n_embd=32, block_size=8, dropout=0.1):
         super().__init__()
         self.heads = nn.ModuleList([
-            AttentionHead(head_size=head_size, n_embd=n_embd, block_size=block_size) 
+            AttentionHead(
+                head_size=head_size, 
+                n_embd=n_embd, 
+                block_size=block_size,
+                dropout=dropout,
+            ) 
             for _ in range(n_heads)
         ])
         self.proj = nn.Linear(n_embd, n_embd)
+        self.dropout = nn.Dropout(dropout)
     
     def forward(self, x):
         out = torch.cat([h(x) for h in self.heads], dim=-1)
-        out = self.proj(out)
+        out = self.dropout(self.proj(out))
         return out
 
 class TransformerBlock(nn.Module):
-    def __init__(self, n_embd=32, n_heads=1, block_size=8):
+    def __init__(self, n_embd=32, n_heads=1, block_size=8, dropout=0.1):
         super().__init__()
         self.sa = TransformerMultiHeadAttention(
             n_heads=n_heads, 
             head_size=n_embd//n_heads, 
             n_embd=n_embd, 
             block_size=block_size,
+            dropout=dropout,
         )
-        self.ffwd = TransformerFeedForward(n_embd=n_embd)
+        self.ffwd = TransformerFeedForward(n_embd=n_embd, dropout=dropout)
+        self.ln1 = nn.LayerNorm(n_embd)
+        self.ln2 = nn.LayerNorm(n_embd)
     
     def forward(self, x):
-        x = self.sa(x) + x
-        x = self.ffwd(x) + x
+        x = self.sa(self.ln1(x)) + x
+        x = self.ffwd(self.ln2(x)) + x
         return x
 
 class TransformerLM(nn.Module):
-    def __init__(self, vocab_size, n_blocks=3, n_heads=4, n_embd=32, block_size=8, device="cpu"):
+    def __init__(self, vocab_size, n_blocks=3, n_heads=4, n_embd=32, block_size=8, dropout=0.1, device="cpu"):
         super().__init__()
         self.block_size = block_size
         self.device = device
@@ -62,9 +72,10 @@ class TransformerLM(nn.Module):
                 n_embd=n_embd, 
                 n_heads=n_heads,  
                 block_size=block_size,
+                dropout=dropout,
             )
             for _ in range(n_blocks)
-        ])
+        ], nn.LayerNorm(n_embd))
         self.lm_head = nn.Linear(n_embd, vocab_size)
 
         self.loss = nn.CrossEntropyLoss()
