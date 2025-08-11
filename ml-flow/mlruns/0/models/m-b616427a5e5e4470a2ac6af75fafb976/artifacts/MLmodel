@@ -1,0 +1,22 @@
+artifact_path: file:///Users/bhekimaenetja/Desktop/Developer/small-projects-ai/ml-flow/mlruns/0/models/m-b616427a5e5e4470a2ac6af75fafb976/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.9.6
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.6.1
+mlflow_version: 3.1.4
+model_id: m-b616427a5e5e4470a2ac6af75fafb976
+model_size_bytes: 472
+model_uuid: m-b616427a5e5e4470a2ac6af75fafb976
+prompts: null
+run_id: 7bec57b963bb4157a6cc56baaff70f04
+utc_time_created: '2025-08-11 15:11:52.132018'

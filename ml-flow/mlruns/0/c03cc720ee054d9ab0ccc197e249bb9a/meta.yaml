@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/bhekimaenetja/Desktop/Developer/small-projects-ai/ml-flow/mlruns/0/c03cc720ee054d9ab0ccc197e249bb9a/artifacts
+end_time: 1754924365767
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: c03cc720ee054d9ab0ccc197e249bb9a
+run_name: efficient-dove-643
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1754924364420
+status: 3
+tags: []
+user_id: bhekimaenetja

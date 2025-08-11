@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/bhekimaenetja/Desktop/Developer/small-projects-ai/ml-flow/mlruns/0/7bec57b963bb4157a6cc56baaff70f04/artifacts
+end_time: 1754925113470
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 7bec57b963bb4157a6cc56baaff70f04
+run_name: nimble-shrimp-972
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1754925112108
+status: 3
+tags: []
+user_id: bhekimaenetja

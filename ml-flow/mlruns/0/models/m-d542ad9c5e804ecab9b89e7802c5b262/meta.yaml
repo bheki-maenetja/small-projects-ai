@@ -1,0 +1,10 @@
+artifact_location: file:///Users/bhekimaenetja/Desktop/Developer/small-projects-ai/ml-flow/mlruns/0/models/m-d542ad9c5e804ecab9b89e7802c5b262/artifacts
+creation_timestamp: 1754924364439
+experiment_id: '0'
+last_updated_timestamp: 1754924365766
+model_id: m-d542ad9c5e804ecab9b89e7802c5b262
+model_type: null
+name: model
+source_run_id: c03cc720ee054d9ab0ccc197e249bb9a
+status: 2
+status_message: null
